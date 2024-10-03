@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+#shirt_details_container {
+    text-align: center;
+}
+
+.shirt_detail {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    max-width: 400px;
+}
+
+button {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+button:hover { opacity: 0.9; }
+button:active { transform: scale(0.98); }
