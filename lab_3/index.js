@@ -1,5 +1,3 @@
-import { shirts } from '/shirts.js';
-
 const shirtsContainer = document.getElementById('shirts_container');
 
 shirts.forEach(shirt => {
