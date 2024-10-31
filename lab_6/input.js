@@ -6,8 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastTouchTime = 0;
 
   // Запоминаем исходное положение каждого элемента
-  targets.forEach((target) => {
-    initialPosition[target] = { x: target.offsetLeft, y: target.offsetTop };
+  targets.forEach((target, index) => {
+    initialPosition[index] = { x: target.offsetLeft, y: target.offsetTop };
 
     // Обработчики для мыши
     target.addEventListener("mousedown", startDrag);
@@ -137,8 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Прерывание и возврат элемента
   function resetDrag() {
     if (draggedElement) {
-      draggedElement.style.left = initialPosition[draggedElement].x + "px";
-      draggedElement.style.top = initialPosition[draggedElement].y + "px";
+      const index = Array.from(targets).indexOf(draggedElement);
+      const initial = initialPosition[index];
+
+      draggedElement.style.left = initial.x + "px";
+      draggedElement.style.top = initial.y + "px";
       draggedElement.style.backgroundColor = "red";
       draggedElement = null;
       isStuck = false;
