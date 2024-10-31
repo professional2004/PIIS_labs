@@ -131,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
       isStuck = false;
       draggedElement.style.backgroundColor = "red";
       draggedElement = null;
+      resetDrag();
     }
   }
 
