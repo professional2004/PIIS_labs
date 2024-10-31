@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function startDrag(event) {
     if (isStuck) return;
     draggedElement = event.target;
+    // initialPosition = { x: draggedElement.offsetLeft, y: draggedElement.offsetTop };
     const shiftX = event.clientX - draggedElement.getBoundingClientRect().left;
     const shiftY = event.clientY - draggedElement.getBoundingClientRect().top;
 
@@ -40,56 +41,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Режим приклеивания к мыши
   function stickToMouse(event) {
-    toggleStuckMode(event.target);
-  }
-
-  function toggleStuckMode(target) {
-    if (isStuck) {
-      isStuck = false;
-      target.style.backgroundColor = "red";
-      draggedElement = null;
-    } else {
-      isStuck = true;
-      draggedElement = target;
-      draggedElement.style.backgroundColor = "blue";
-      document.addEventListener("mousemove", moveWithMouse);
-      document.addEventListener("click", stopStuckMode);
-    }
-  }
-
-  function moveWithMouse(e) {
-    if (isStuck && draggedElement) {
-      draggedElement.style.left = e.pageX + "px";
-      draggedElement.style.top = e.pageY + "px";
-    }
-  }
-
-  function stopStuckMode() {
     if (isStuck) {
       isStuck = false;
       draggedElement.style.backgroundColor = "red";
-      document.removeEventListener("mousemove", moveWithMouse);
-      document.removeEventListener("click", stopStuckMode);
       draggedElement = null;
+      return;
     }
+
+    isStuck = true;
+    draggedElement = event.target;
+    // initialPosition = { x: draggedElement.offsetLeft, y: draggedElement.offsetTop };
+    draggedElement.style.backgroundColor = "blue";
+
+    function moveWithMouse(e) {
+      if (isStuck) {
+        draggedElement.style.left = e.pageX + "px";
+        draggedElement.style.top = e.pageY + "px";
+      }
+    }
+
+    document.addEventListener("mousemove", moveWithMouse);
+
+    document.addEventListener("click", function unstick() {
+      if (isStuck) {
+        isStuck = false;
+        draggedElement.style.backgroundColor = "red";
+        document.removeEventListener("mousemove", moveWithMouse);
+        document.removeEventListener("click", unstick);
+        draggedElement = null;
+      }
+    });
   }
 
-  // Начало сенсорного прикосновения
+  // Обработка сенсорного касания
   function startTouch(event) {
     const touches = event.touches;
     if (touches.length > 1) {
-      // Второе касание прерывает режим и возвращает элемент на исходное место
+      // Второе касание прерывает приклеивание
       resetDrag();
       return;
     }
 
     const currentTime = new Date().getTime();
     if (currentTime - lastTouchTime < 300) {
-      // Двойное касание: активируем режим приклеивания
-      toggleStuckMode(event.target);
-    } else if (!isStuck) {
+      // Режим приклеивания для двойного нажатия
+      isStuck = true;
+      draggedElement = event.target;
+      // initialPosition = { x: draggedElement.offsetLeft, y: draggedElement.offsetTop };
+      draggedElement.style.backgroundColor = "blue";
+    } else {
       // Обычное перетаскивание
       draggedElement = event.target;
+      // initialPosition = { x: draggedElement.offsetLeft, y: draggedElement.offsetTop };
       const shiftX = touches[0].clientX - draggedElement.getBoundingClientRect().left;
       const shiftY = touches[0].clientY - draggedElement.getBoundingClientRect().top;
 
@@ -100,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       document.addEventListener("touchmove", onTouchMove);
+
       document.addEventListener("touchend", function onTouchEnd() {
         document.removeEventListener("touchmove", onTouchMove);
         document.removeEventListener("touchend", onTouchEnd);
@@ -109,9 +113,9 @@ document.addEventListener("DOMContentLoaded", () => {
     lastTouchTime = currentTime;
   }
 
-  // Перемещение приклеенного элемента при сенсорном касании
+  // Режим следования за пальцем в режиме приклеивания
   function onTouchMove(event) {
-    if (isStuck && event.touches.length === 1 && draggedElement) {
+    if (isStuck && event.touches.length === 1) {
       const touch = event.touches[0];
       draggedElement.style.left = touch.pageX + "px";
       draggedElement.style.top = touch.pageY + "px";
@@ -123,28 +127,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // Завершение приклеивания для сенсора
   function endTouch(event) {
     if (isStuck && event.target === draggedElement) {
-      const currentTime = new Date().getTime();
-      if (currentTime - lastTouchTime < 300) {
-        // Короткое касание (отпустить приклеенный элемент)
-        stopStuckMode();
-      }
-      lastTouchTime = currentTime;
+      // Короткое касание завершает режим приклеивания
+      isStuck = false;
+      draggedElement.style.backgroundColor = "red";
+      draggedElement = null;
     }
   }
 
-  // Сброс положения и возвращение элемента на начальную позицию
+  // Прерывание и возврат элемента
   function resetDrag() {
     if (draggedElement) {
-      const initial = initialPosition[draggedElement];
-      draggedElement.style.left = initial.x + "px";
-      draggedElement.style.top = initial.y + "px";
+      draggedElement.style.left = initialPosition[draggedElement].x + "px";
+      draggedElement.style.top = initialPosition[draggedElement].y + "px";
       draggedElement.style.backgroundColor = "red";
       draggedElement = null;
       isStuck = false;
     }
   }
 
-  // Клавиша Esc или второе касание прерывает перетаскивание
+  // Клавиша Esc прерывает перетаскивание
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       resetDrag();
